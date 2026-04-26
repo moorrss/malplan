@@ -1,0 +1,26 @@
+# Beroenden
+node_modules
+
+# Build-output
+dist
+dist-ssr
+
+# Miljövariabler – läggs ALDRIG upp på GitHub
+.env
+.env.local
+.env.*.local
+*.local
+
+# Loggar
+logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# OS
+Thumbs.db
