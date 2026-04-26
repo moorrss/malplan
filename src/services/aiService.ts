@@ -32,17 +32,22 @@ export interface AIResult {
 
 export interface Budget {
   label: string;
-  dailyKr: number;
   emoji: string;
   description: string;
+  weeklyMin: number;
+  weeklyMax: number;
+  weeklyDefault: number;
+  weeklyKr: number; // aktuellt valt värde
 }
 
-export const BUDGETS: Budget[] = [
-  { label: 'Rikemansbarn', emoji: '💸', dailyKr: 200, description: 'Premium råvaror, inga kompromisser' },
-  { label: 'Har jobb',     emoji: '💼', dailyKr: 100, description: 'Vällagat till rimlig kostnad' },
-  { label: 'Arbetslös',    emoji: '📋', dailyKr: 50,  description: 'Budgetvänligt och mättande' },
-  { label: 'Fattig student', emoji: '📚', dailyKr: 30, description: 'Maximera värde för pengarna' },
+export const BUDGET_PRESETS: Omit<Budget, 'weeklyKr'>[] = [
+  { label: 'Rikemansbarn',   emoji: '💸', weeklyMin: 1000, weeklyMax: 3000, weeklyDefault: 1400, description: 'Premium råvaror, inga kompromisser' },
+  { label: 'Har jobb',       emoji: '💼', weeklyMin: 500,  weeklyMax: 1000, weeklyDefault: 700,  description: 'Vällagat till rimlig kostnad' },
+  { label: 'Arbetslös',      emoji: '📋', weeklyMin: 200,  weeklyMax: 500,  weeklyDefault: 350,  description: 'Budgetvänligt och mättande' },
+  { label: 'Fattig student', emoji: '📚', weeklyMin: 300,  weeklyMax: 500,  weeklyDefault: 350,  description: 'Maximera värde för pengarna' },
 ];
+
+export const BUDGETS: Budget[] = BUDGET_PRESETS.map((p) => ({ ...p, weeklyKr: p.weeklyDefault }));
 
 export const BUDGET_STORAGE = 'malplan_budget';
 
@@ -55,16 +60,19 @@ export function saveApiKey(key: string): void {
 }
 
 export function getSavedBudget(): Budget {
-  const saved = localStorage.getItem(BUDGET_STORAGE);
-  if (saved) {
-    const found = BUDGETS.find((b) => b.label === saved);
-    if (found) return found;
-  }
+  try {
+    const raw = localStorage.getItem(BUDGET_STORAGE);
+    if (raw) {
+      const saved = JSON.parse(raw) as Budget;
+      const preset = BUDGET_PRESETS.find((p) => p.label === saved.label);
+      if (preset) return { ...preset, weeklyKr: saved.weeklyKr ?? preset.weeklyDefault };
+    }
+  } catch { /* ignore */ }
   return BUDGETS[1]; // default: Har jobb
 }
 
 export function saveBudget(budget: Budget): void {
-  localStorage.setItem(BUDGET_STORAGE, budget.label);
+  localStorage.setItem(BUDGET_STORAGE, JSON.stringify({ label: budget.label, weeklyKr: budget.weeklyKr }));
 }
 
 function buildPrompt(
@@ -73,6 +81,7 @@ function buildPrompt(
   budget: Budget,
   preferences?: string,
 ): string {
+  const dailyKr = Math.round(budget.weeklyKr / 7);
   const offerList = offers
     .map(
       (o) =>
@@ -92,10 +101,10 @@ ${offerList}
 
 Planera ${selectedMeals} för en dag.
 
-Budget: ${budget.emoji} ${budget.label} — ca ${budget.dailyKr} kr per dag totalt för alla måltider. ${budget.description}.${preferences ? `\nExtra önskemål: ${preferences}` : ''}
+Budget: ${budget.emoji} ${budget.label} — ca ${dailyKr} kr per dag (${budget.weeklyKr} kr/vecka). ${budget.description}.${preferences ? `\nExtra önskemål: ${preferences}` : ''}
 
 Regler:
-- Anpassa ingredienser och portionsstorlekar strikt efter budgeten (${budget.dailyKr} kr/dag)
+- Anpassa ingredienser och portionsstorlekar strikt efter budgeten (${dailyKr} kr/dag, ${budget.weeklyKr} kr/vecka)
 - Använd MINST ett erbjudandeprodukt per måltid om möjligt
 - Alla måltider ska vara hälsosamma och balanserade
 - Ange ungefärliga kalorier per portion (kcal)

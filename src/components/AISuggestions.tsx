@@ -343,7 +343,7 @@ export default function AISuggestions({ offers, onOpenApiKey, selectedDate, onPl
           disabled={loading || selectedMeals.length === 0}
           className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl py-3.5 font-bold text-sm hover:from-green-600 hover:to-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
         >
-          {loading ? '⏳ Genererar förslag...' : noKey ? '🔑 Lägg till API-nyckel' : `✨ Generera förslag (${budget.emoji} ${budget.dailyKr} kr/dag)`}
+          {loading ? '⏳ Genererar förslag...' : noKey ? '🔑 Lägg till API-nyckel' : `✨ Generera förslag (${budget.emoji} ${budget.weeklyKr} kr/vecka)`}
         </button>
 
         {error && (
