@@ -18,7 +18,6 @@ const MEALS: { type: MealType; label: string; emoji: string }[] = [
 ];
 
 const DAILY_GOAL = 2000;
-
 type Tab = 'plan' | 'offers' | 'ai';
 
 export default function App() {
@@ -61,13 +60,10 @@ export default function App() {
     setModalOpen(true);
   };
 
-  const entriesFor = (type: MealType) =>
-    dayPlan.entries.filter((e) => e.mealType === type);
+  const entriesFor = (type: MealType) => dayPlan.entries.filter((e) => e.mealType === type);
 
-  const dateLabel = new Date(selectedDate).toLocaleDateString('sv-SE', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
+  const dateLabel = new Date(selectedDate + 'T12:00:00').toLocaleDateString('sv-SE', {
+    weekday: 'long', day: 'numeric', month: 'long',
   });
 
   const tabs: { id: Tab; label: string; emoji: string }[] = [
@@ -79,40 +75,45 @@ export default function App() {
   const hasKey = getSavedApiKey().length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-green-50/30">
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🥗</span>
-            <h1 className="text-xl font-bold text-slate-800">MålPlan</h1>
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Beta</span>
+      <header className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center text-lg shadow-sm">
+              🥗
+            </div>
+            <div>
+              <h1 className="text-lg font-extrabold text-slate-800 leading-none">MålPlan</h1>
+              <span className="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Beta</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+          <div className="flex items-center gap-2">
+            <nav className="flex bg-slate-100 rounded-xl p-1 gap-0.5">
               {tabs.map(({ id, label, emoji }) => (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                     activeTab === id
                       ? 'bg-white text-slate-800 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
+                      : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  {emoji} {label}
+                  <span className="mr-1">{emoji}</span>
+                  <span className="hidden sm:inline">{label}</span>
                 </button>
               ))}
-            </div>
+            </nav>
 
             <button
               onClick={() => setApiKeyOpen(true)}
-              title="Anthropic API-nyckel"
-              className={`p-2 rounded-xl border text-sm transition-all ${
+              title={hasKey ? 'API-nyckel konfigurerad' : 'Lägg till API-nyckel'}
+              className={`w-9 h-9 flex items-center justify-center rounded-xl border-2 transition-all text-base ${
                 hasKey
                   ? 'border-green-200 bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-amber-300 hover:text-amber-500'
+                  : 'border-amber-200 bg-amber-50 text-amber-500 hover:bg-amber-100 animate-pulse'
               }`}
             >
               🔑
@@ -123,12 +124,15 @@ export default function App() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {activeTab === 'plan' && (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <WeekNav selectedDate={selectedDate} onDateChange={handleDateChange} />
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-700 capitalize">{dateLabel}</h2>
+
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xl font-bold text-slate-800 capitalize">{dateLabel}</h2>
+              <span className="text-sm text-slate-400 font-medium">{dayPlan.entries.length} livsmedel loggade</span>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <div className="lg:col-span-2 space-y-4">
                 {MEALS.map(({ type, label, emoji }) => (
                   <MealSection
@@ -143,7 +147,7 @@ export default function App() {
                 ))}
               </div>
               <div className="lg:col-span-1">
-                <div className="sticky top-24">
+                <div className="sticky top-20">
                   <CalorieSummary entries={dayPlan.entries} dailyGoal={DAILY_GOAL} />
                 </div>
               </div>
@@ -156,7 +160,12 @@ export default function App() {
         )}
 
         {activeTab === 'ai' && (
-          <AISuggestions offers={loadedOffers} onOpenApiKey={() => setApiKeyOpen(true)} />
+          <AISuggestions
+            offers={loadedOffers}
+            onOpenApiKey={() => setApiKeyOpen(true)}
+            selectedDate={selectedDate}
+            onPlanUpdated={() => refresh(selectedDate)}
+          />
         )}
       </main>
 
