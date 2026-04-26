@@ -27,7 +27,7 @@ export default function ApiKeyModal({ onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 border-b border-slate-100 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-slate-800">🔑 Anthropic API-nyckel</h2>
+          <h2 className="text-lg font-semibold text-slate-800">🔑 Groq API-nyckel</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">
             ✕
           </button>
@@ -35,7 +35,7 @@ export default function ApiKeyModal({ onClose }: Props) {
 
         <div className="p-5 space-y-4">
           <p className="text-sm text-slate-500">
-            AI-förslagen kräver en Anthropic API-nyckel. Nyckeln sparas lokalt i din webbläsare och
+            AI-förslagen använder Groq (gratis). Nyckeln sparas lokalt i din webbläsare och
             skickas aldrig vidare.
           </p>
 
@@ -53,20 +53,20 @@ export default function ApiKeyModal({ onClose }: Props) {
               type="password"
               value={key}
               onChange={(e) => { setKey(e.target.value); setSaved(false); }}
-              placeholder="sk-ant-..."
+              placeholder="gsk_..."
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-300 placeholder:text-slate-300"
             />
           </div>
 
           <p className="text-xs text-slate-400">
-            Skaffa en nyckel på{' '}
+            Skaffa en gratis nyckel på{' '}
             <a
-              href="https://console.anthropic.com/settings/keys"
+              href="https://console.groq.com/keys"
               target="_blank"
               rel="noopener noreferrer"
               className="text-green-600 hover:underline"
             >
-              console.anthropic.com
+              console.groq.com/keys
             </a>
           </p>
 

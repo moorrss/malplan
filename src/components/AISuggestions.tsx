@@ -151,8 +151,8 @@ export default function AISuggestions({ offers, onOpenApiKey }: Props) {
       if (parsed.length === 0) setError('Kunde inte tolka AI-svaret. Försök igen.');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Okänt fel';
-      if (msg.includes('401') || msg.includes('authentication')) {
-        setError('Ogiltig API-nyckel. Kontrollera din nyckel under inställningar (🔑).');
+      if (msg.includes('401') || msg.includes('authentication') || msg.includes('invalid_api_key')) {
+        setError('Ogiltig Groq API-nyckel. Hämta en gratis nyckel på console.groq.com/keys och lägg in den via 🔑.');
       } else {
         setError(msg);
       }

@@ -1,7 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Groq from 'groq-sdk';
 import type { Offer, MealType } from '../types';
 
-export const AI_KEY_STORAGE = 'malplan_anthropic_key';
+export const AI_KEY_STORAGE = 'malplan_groq_key';
+const MODEL = 'llama-3.3-70b-versatile';
 
 export interface MealSuggestion {
   mealType: MealType;
@@ -55,7 +56,7 @@ Regler:
 - Förklara kortfattat varför rätten är hälsosam
 - Svara på svenska
 
-Svara i detta JSON-format (och INGET annat):
+Svara i detta JSON-format (och INGET annat, ingen text utanför JSON):
 {
   "suggestions": [
     {
@@ -80,18 +81,18 @@ export async function* streamMealSuggestions(
   mealTypes: MealType[],
   preferences?: string,
 ): AsyncGenerator<string> {
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+  const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
   const prompt = buildPrompt(offers.slice(0, 30), mealTypes, preferences);
 
-  const stream = client.messages.stream({
-    model: 'claude-sonnet-4-6',
+  const stream = await client.chat.completions.create({
+    model: MODEL,
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
+    stream: true,
   });
 
   for await (const chunk of stream) {
-    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-      yield chunk.delta.text;
-    }
+    const delta = chunk.choices[0]?.delta?.content ?? '';
+    if (delta) yield delta;
   }
 }
